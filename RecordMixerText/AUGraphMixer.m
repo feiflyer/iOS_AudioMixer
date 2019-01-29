@@ -65,9 +65,16 @@
     
     AVAudioSession* session = [AVAudioSession sharedInstance];
     
-    [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionDuckOthers error:nil];
+    [session setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
+    
+    [session overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil];
+    
+    [session setActive:YES error:nil];
+   
     
     AUGraphStart(processingGraph);
+    
+   
     
     _runing = YES;
 }
@@ -125,6 +132,7 @@
     //play data callback
     AudioUnitAddRenderNotify(mixerUnit, playUnitInputCallback, (__bridge void *)self);
     
+    
     //添加一个渲染通知，在这个组件渲染数据前后都会回调，在渲染后可以在回调的ioData里得到当前组件的数据。
     status = AUGraphConnectNodeInput(processingGraph, mixerNode, 0, recordPlayNode, 0);
     TFCheckStatusUnReturn(status, @"connect mixer to play");
@@ -137,6 +145,7 @@
     [self setStramFormats];
     
     [self setupFileReaders];
+    
     [self setupFileWriters];
 
     status = AUGraphInitialize(processingGraph);
@@ -166,6 +175,8 @@
     
     for (int i = 0; i<MixerInputSourceCount; i++) {
         if ([[self.audioChannelTypes objectForKey:@(i)] integerValue] == AUGraphMixerChannelTypeStereo) {
+            
+            //AVAudioPCMFormatFloat32 这个有噪音
             sourceStreamFmts[i] = *([[AVAudioFormat alloc] initWithCommonFormat:AVAudioPCMFormatFloat32
                                                                          sampleRate:44100
                                                                            channels:2

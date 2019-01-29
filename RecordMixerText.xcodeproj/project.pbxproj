@@ -13,6 +13,14 @@
 		38F4041021FED2EE006F9E43 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 38F4040F21FED2EE006F9E43 /* Assets.xcassets */; };
 		38F4041321FED2EE006F9E43 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 38F4041121FED2EE006F9E43 /* LaunchScreen.storyboard */; };
 		38F4041621FED2EE006F9E43 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 38F4041521FED2EE006F9E43 /* main.m */; };
+		38F4042121FED916006F9E43 /* TFAudioFileWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = 38F4042021FED916006F9E43 /* TFAudioFileWriter.m */; };
+		38F4042521FED9B5006F9E43 /* TFAudioBufferData.c in Sources */ = {isa = PBXBuildFile; fileRef = 38F4042321FED9B4006F9E43 /* TFAudioBufferData.c */; };
+		38F4042F21FEDB2F006F9E43 /* TFAudioFileReader.m in Sources */ = {isa = PBXBuildFile; fileRef = 38F4042D21FEDB2E006F9E43 /* TFAudioFileReader.m */; };
+		38F4043221FEDB48006F9E43 /* TFAudioOutput.m in Sources */ = {isa = PBXBuildFile; fileRef = 38F4043021FEDB48006F9E43 /* TFAudioOutput.m */; };
+		38F4043621FEDB9A006F9E43 /* AUGraphMixer.m in Sources */ = {isa = PBXBuildFile; fileRef = 38F4043521FEDB9A006F9E43 /* AUGraphMixer.m */; };
+		38F4043821FEDC28006F9E43 /* 123.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 38F4043721FEDC28006F9E43 /* 123.mp3 */; };
+		38F4043E21FEDEBF006F9E43 /* TFMediaDataAnalyzer.m in Sources */ = {isa = PBXBuildFile; fileRef = 38F4043D21FEDEBF006F9E43 /* TFMediaDataAnalyzer.m */; };
+		38F4044121FEE549006F9E43 /* TFAudioUnitPlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 38F4043F21FEE549006F9E43 /* TFAudioUnitPlayer.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +34,24 @@
 		38F4041221FED2EE006F9E43 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		38F4041421FED2EE006F9E43 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		38F4041521FED2EE006F9E43 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		38F4041F21FED916006F9E43 /* TFAudioFileWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TFAudioFileWriter.h; sourceTree = "<group>"; };
+		38F4042021FED916006F9E43 /* TFAudioFileWriter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TFAudioFileWriter.m; sourceTree = "<group>"; };
+		38F4042221FED987006F9E43 /* TFAudioInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TFAudioInput.h; sourceTree = "<group>"; };
+		38F4042321FED9B4006F9E43 /* TFAudioBufferData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TFAudioBufferData.c; sourceTree = "<group>"; };
+		38F4042421FED9B4006F9E43 /* TFAudioBufferData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TFAudioBufferData.h; sourceTree = "<group>"; };
+		38F4042621FEDA19006F9E43 /* TFStatusChecker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TFStatusChecker.h; sourceTree = "<group>"; };
+		38F4042D21FEDB2E006F9E43 /* TFAudioFileReader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TFAudioFileReader.m; sourceTree = "<group>"; };
+		38F4042E21FEDB2E006F9E43 /* TFAudioFileReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TFAudioFileReader.h; sourceTree = "<group>"; };
+		38F4043021FEDB48006F9E43 /* TFAudioOutput.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TFAudioOutput.m; sourceTree = "<group>"; };
+		38F4043121FEDB48006F9E43 /* TFAudioOutput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TFAudioOutput.h; sourceTree = "<group>"; };
+		38F4043321FEDB6B006F9E43 /* TFAudioReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TFAudioReader.h; sourceTree = "<group>"; };
+		38F4043421FEDB9A006F9E43 /* AUGraphMixer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AUGraphMixer.h; sourceTree = "<group>"; };
+		38F4043521FEDB9A006F9E43 /* AUGraphMixer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AUGraphMixer.m; sourceTree = "<group>"; };
+		38F4043721FEDC28006F9E43 /* 123.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = 123.mp3; sourceTree = "<group>"; };
+		38F4043C21FEDEBE006F9E43 /* TFMediaDataAnalyzer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TFMediaDataAnalyzer.h; sourceTree = "<group>"; };
+		38F4043D21FEDEBF006F9E43 /* TFMediaDataAnalyzer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TFMediaDataAnalyzer.m; sourceTree = "<group>"; };
+		38F4043F21FEE549006F9E43 /* TFAudioUnitPlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TFAudioUnitPlayer.m; sourceTree = "<group>"; };
+		38F4044021FEE549006F9E43 /* TFAudioUnitPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TFAudioUnitPlayer.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +84,24 @@
 		38F4040521FED2ED006F9E43 /* RecordMixerText */ = {
 			isa = PBXGroup;
 			children = (
+				38F4044021FEE549006F9E43 /* TFAudioUnitPlayer.h */,
+				38F4043F21FEE549006F9E43 /* TFAudioUnitPlayer.m */,
+				38F4043C21FEDEBE006F9E43 /* TFMediaDataAnalyzer.h */,
+				38F4043D21FEDEBF006F9E43 /* TFMediaDataAnalyzer.m */,
+				38F4043721FEDC28006F9E43 /* 123.mp3 */,
+				38F4043421FEDB9A006F9E43 /* AUGraphMixer.h */,
+				38F4043521FEDB9A006F9E43 /* AUGraphMixer.m */,
+				38F4043321FEDB6B006F9E43 /* TFAudioReader.h */,
+				38F4043121FEDB48006F9E43 /* TFAudioOutput.h */,
+				38F4043021FEDB48006F9E43 /* TFAudioOutput.m */,
+				38F4042E21FEDB2E006F9E43 /* TFAudioFileReader.h */,
+				38F4042D21FEDB2E006F9E43 /* TFAudioFileReader.m */,
+				38F4042621FEDA19006F9E43 /* TFStatusChecker.h */,
+				38F4042321FED9B4006F9E43 /* TFAudioBufferData.c */,
+				38F4042421FED9B4006F9E43 /* TFAudioBufferData.h */,
+				38F4042221FED987006F9E43 /* TFAudioInput.h */,
+				38F4041F21FED916006F9E43 /* TFAudioFileWriter.h */,
+				38F4042021FED916006F9E43 /* TFAudioFileWriter.m */,
 				38F4040621FED2ED006F9E43 /* AppDelegate.h */,
 				38F4040721FED2ED006F9E43 /* AppDelegate.m */,
 				38F4040921FED2ED006F9E43 /* ViewController.h */,
@@ -128,6 +172,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				38F4043821FEDC28006F9E43 /* 123.mp3 in Resources */,
 				38F4041321FED2EE006F9E43 /* LaunchScreen.storyboard in Resources */,
 				38F4041021FED2EE006F9E43 /* Assets.xcassets in Resources */,
 				38F4040E21FED2ED006F9E43 /* Main.storyboard in Resources */,
@@ -141,9 +186,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				38F4042521FED9B5006F9E43 /* TFAudioBufferData.c in Sources */,
+				38F4043E21FEDEBF006F9E43 /* TFMediaDataAnalyzer.m in Sources */,
 				38F4040B21FED2ED006F9E43 /* ViewController.m in Sources */,
 				38F4041621FED2EE006F9E43 /* main.m in Sources */,
 				38F4040821FED2ED006F9E43 /* AppDelegate.m in Sources */,
+				38F4042121FED916006F9E43 /* TFAudioFileWriter.m in Sources */,
+				38F4043221FEDB48006F9E43 /* TFAudioOutput.m in Sources */,
+				38F4044121FEE549006F9E43 /* TFAudioUnitPlayer.m in Sources */,
+				38F4043621FEDB9A006F9E43 /* AUGraphMixer.m in Sources */,
+				38F4042F21FEDB2F006F9E43 /* TFAudioFileReader.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -286,7 +338,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 9C2ZU8EB9V;
 				INFOPLIST_FILE = RecordMixerText/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -302,7 +356,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 9C2ZU8EB9V;
 				INFOPLIST_FILE = RecordMixerText/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

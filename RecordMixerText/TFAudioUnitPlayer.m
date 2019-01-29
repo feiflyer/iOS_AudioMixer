@@ -199,7 +199,13 @@ void audioStreamPacketCallback(
     TFCheckStatusUnReturn(status, @"set render callback");
     
     NSError *error = nil;
-    [[AVAudioSession sharedInstance]setCategory:AVAudioSessionCategoryPlayAndRecord error:&error];
+//    [[AVAudioSession sharedInstance]setCategory:AVAudioSessionCategoryPlayAndRecord error:&error];
+    
+    
+    AVAudioSession* session = [AVAudioSession sharedInstance];
+    
+    [session setCategory:AVAudioSessionCategoryPlayback error:nil];
+    
     if (error) {
         NSLog(@"audio session set category: %@",error);
         return;
