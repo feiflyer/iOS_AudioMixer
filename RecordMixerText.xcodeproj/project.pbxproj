@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		389AF5C422014C3400DB5736 /* 1234.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 389AF5C322014C3400DB5736 /* 1234.mp3 */; };
+		389AF5C92201830A00DB5736 /* AUGraphMixerV2.m in Sources */ = {isa = PBXBuildFile; fileRef = 389AF5C82201830A00DB5736 /* AUGraphMixerV2.m */; };
 		38F4040821FED2ED006F9E43 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 38F4040721FED2ED006F9E43 /* AppDelegate.m */; };
 		38F4040B21FED2ED006F9E43 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 38F4040A21FED2ED006F9E43 /* ViewController.m */; };
 		38F4040E21FED2ED006F9E43 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 38F4040C21FED2ED006F9E43 /* Main.storyboard */; };
@@ -24,6 +26,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		389AF5C322014C3400DB5736 /* 1234.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = 1234.mp3; sourceTree = "<group>"; };
+		389AF5C72201830A00DB5736 /* AUGraphMixerV2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AUGraphMixerV2.h; sourceTree = "<group>"; };
+		389AF5C82201830A00DB5736 /* AUGraphMixerV2.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AUGraphMixerV2.m; sourceTree = "<group>"; };
 		38F4040321FED2ED006F9E43 /* RecordMixerText.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RecordMixerText.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		38F4040621FED2ED006F9E43 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		38F4040721FED2ED006F9E43 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -88,6 +93,7 @@
 				38F4043F21FEE549006F9E43 /* TFAudioUnitPlayer.m */,
 				38F4043C21FEDEBE006F9E43 /* TFMediaDataAnalyzer.h */,
 				38F4043D21FEDEBF006F9E43 /* TFMediaDataAnalyzer.m */,
+				389AF5C322014C3400DB5736 /* 1234.mp3 */,
 				38F4043721FEDC28006F9E43 /* 123.mp3 */,
 				38F4043421FEDB9A006F9E43 /* AUGraphMixer.h */,
 				38F4043521FEDB9A006F9E43 /* AUGraphMixer.m */,
@@ -111,6 +117,8 @@
 				38F4041121FED2EE006F9E43 /* LaunchScreen.storyboard */,
 				38F4041421FED2EE006F9E43 /* Info.plist */,
 				38F4041521FED2EE006F9E43 /* main.m */,
+				389AF5C72201830A00DB5736 /* AUGraphMixerV2.h */,
+				389AF5C82201830A00DB5736 /* AUGraphMixerV2.m */,
 			);
 			path = RecordMixerText;
 			sourceTree = "<group>";
@@ -173,6 +181,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				38F4043821FEDC28006F9E43 /* 123.mp3 in Resources */,
+				389AF5C422014C3400DB5736 /* 1234.mp3 in Resources */,
 				38F4041321FED2EE006F9E43 /* LaunchScreen.storyboard in Resources */,
 				38F4041021FED2EE006F9E43 /* Assets.xcassets in Resources */,
 				38F4040E21FED2ED006F9E43 /* Main.storyboard in Resources */,
@@ -187,6 +196,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				38F4042521FED9B5006F9E43 /* TFAudioBufferData.c in Sources */,
+				389AF5C92201830A00DB5736 /* AUGraphMixerV2.m in Sources */,
 				38F4043E21FEDEBF006F9E43 /* TFMediaDataAnalyzer.m in Sources */,
 				38F4040B21FED2ED006F9E43 /* ViewController.m in Sources */,
 				38F4041621FED2EE006F9E43 /* main.m in Sources */,

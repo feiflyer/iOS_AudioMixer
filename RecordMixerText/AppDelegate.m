@@ -7,6 +7,9 @@
 //
 
 #import "AppDelegate.h"
+#import <AudioToolbox/AudioToolbox.h>
+#import <Foundation/Foundation.h>
+#import <AVFoundation/AVFoundation.h>
 
 @interface AppDelegate ()
 
@@ -17,6 +20,39 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+    
+     NSError *error = nil;
+    
+    // Configure the audio session
+    AVAudioSession *sessionInstance = [AVAudioSession sharedInstance];
+    
+    // our default category -- we change this for conversion and playback appropriately
+    [sessionInstance setCategory:AVAudioSessionCategoryPlayback error:&error];
+//    XThrowIfError((OSStatus)error.code, "couldn't set audio category");
+    
+    NSTimeInterval bufferDuration = .005;
+    [sessionInstance setPreferredIOBufferDuration:bufferDuration error:&error];
+//    XThrowIfError((OSStatus)error.code, "couldn't set IOBufferDuration");
+    
+    double hwSampleRate = 44100.0;
+    [sessionInstance setPreferredSampleRate:hwSampleRate error:&error];
+//    XThrowIfError((OSStatus)error.code, "couldn't set preferred sample rate");
+    
+//    // add interruption handler
+//    [[NSNotificationCenter defaultCenter] addObserver:self
+//                                             selector:@selector(handleInterruption:)
+//                                                 name:AVAudioSessionInterruptionNotification
+//                                               object:sessionInstance];
+//
+//    // we don't do anything special in the route change notification
+//    [[NSNotificationCenter defaultCenter] addObserver:self
+//                                             selector:@selector(handleRouteChange:)
+//                                                 name:AVAudioSessionRouteChangeNotification
+//                                               object:sessionInstance];
+    
+    // activate the audio session
+    [sessionInstance setActive:YES error:&error];
+    
     return YES;
 }
 

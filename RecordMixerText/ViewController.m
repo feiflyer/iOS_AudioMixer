@@ -13,6 +13,8 @@
 #import "TFMediaDataAnalyzer.h"
 #import "TFAudioUnitPlayer.h"
 
+#import "AUGraphMixerV2.h"
+
 
 @interface ViewController () {
    
@@ -23,6 +25,8 @@
     
      TFAudioUnitPlayer *_audioPlayer;
     
+    
+    AUGraphMixerV2* aUGraphMixerV2;
 }
 
 
@@ -40,22 +44,30 @@
     
     NSString *mp3Path = [[NSBundle mainBundle] pathForResource:@"123" ofType:@"mp3"];
     _selectedMusic = [TFMediaDataAnalyzer mediaDataForItemAt:mp3Path];
-
+    
+    
+    aUGraphMixerV2 = [[AUGraphMixerV2 alloc] init];
+    
+     [aUGraphMixerV2 initializeAUGraph];
 }
 
 - (IBAction)recordAudio:(id)sender {
     
-    if ([self mixRuning]) {
-        [_AUGraphMixer stop];
-//        _AUGraphMixer = nil;
-    }else{
-        
-        if (!_AUGraphMixer) {
-            [self setupGraphMixer];
-        }
-        _AUGraphMixer.musicFilePath = _selectedMusic.filePath;
-        [_AUGraphMixer start];
-    }
+//    if ([self mixRuning]) {
+//        [_AUGraphMixer stop];
+////        _AUGraphMixer = nil;
+//    }else{
+//
+//        if (!_AUGraphMixer) {
+//            [self setupGraphMixer];
+//        }
+//        _AUGraphMixer.musicFilePath = _selectedMusic.filePath;
+//        [_AUGraphMixer start];
+//    }
+    
+    
+
+    [aUGraphMixerV2 startAUGraph];
     
 }
 
