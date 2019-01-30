@@ -22,7 +22,7 @@
 #define leftChannelIndex  0
 #define rightChannelIndex 1
 
-#define MixerInputSourceCount   3
+#define MixerInputSourceCount   2
 #define FirstAudioFileIndex     0
 #define RecordUnitSourceIndex    1
 #define SecondAudioFileIndex    2
@@ -147,12 +147,19 @@
     [self setupFileReaders];
     
     [self setupFileWriters];
+    
+    [self setAudioSourceAtIndex:0 channelTypeTo:AUGraphMixerChannelTypeStereo];
+    [self setAudioSourceAtIndex:1 channelTypeTo:AUGraphMixerChannelTypeStereo];
 
     status = AUGraphInitialize(processingGraph);
     TFCheckStatusUnReturn(status, @"init graph");
     
     for (int i = 0; i<MixerInputSourceCount; i++) {
-        AudioUnitSetParameter(mixerUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Input, (UInt32)index, (volumes[i]?:0.5f), 0);
+        if(i == 1){
+            AudioUnitSetParameter(mixerUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Input, (UInt32)index, (volumes[i]?:0.99f), 0);
+        }else{
+            AudioUnitSetParameter(mixerUnit, kMultiChannelMixerParam_Volume, kAudioUnitScope_Input, (UInt32)index, (volumes[i]?:0.3f), 0);
+        }
     }
 }
 
@@ -279,7 +286,7 @@
 //存储各个输入源的声道类型
 -(NSMutableDictionary *)audioChannelTypes{
     if (!_audioChannelTypes) {
-        _audioChannelTypes = [[NSMutableDictionary alloc] initWithCapacity:3];
+        _audioChannelTypes = [[NSMutableDictionary alloc] initWithCapacity:MixerInputSourceCount];
     }
     
     return _audioChannelTypes;
@@ -331,7 +338,6 @@ static OSStatus mixerDataInput(void *inRefCon, AudioUnitRenderActionFlags *ioAct
         [mixer readAudioFile:0 numberFrames:inNumberFrames toBuffer:ioData];
         
     }else if (inBusNumber == RecordUnitSourceIndex){
-        
         [mixer readRecordedAudio:ioActionFlags timeStamp:inTimeStamp numberFrames:inNumberFrames toBuffer:ioData];
     }else if (inBusNumber == SecondAudioFileIndex){
         [mixer readAudioFile:1 numberFrames:inNumberFrames toBuffer:ioData];
@@ -426,7 +432,6 @@ static OSStatus playUnitInputCallback(void *inRefCon,
         [mixer.fileWriter receiveNewAudioBuffers:tf_audioBuf];
     }
 
-    
     return noErr;
 }
 
