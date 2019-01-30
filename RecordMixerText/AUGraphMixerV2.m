@@ -31,11 +31,20 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
     for (UInt32 i = 0; i < inNumberFrames; ++i) {
         
         if (1 == inBusNumber) {
-            outA[i] = 0;
+            
+//            outA[i] = 0;
+//            outB[i] = in[sample++];
+            //双声道
+            outA[i] = in[sample++];
             outB[i] = in[sample++];
         } else {
+            
+//            outA[i] = in[sample++];
+//            outB[i] = 0;
+            
+            //双声道
             outA[i] = in[sample++];
-            outB[i] = 0;
+            outB[i] = in[sample++];
         }
         
         if (sample > bufSamples) {
@@ -85,9 +94,11 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
 // load up audio data from the demo files into mSoundBuffer.data used in the render proc
 - (void)loadFiles
 {
+    
+    //单声道伴奏
     AVAudioFormat *clientFormat = [[AVAudioFormat alloc] initWithCommonFormat:AVAudioPCMFormatFloat32
                                                                    sampleRate:kGraphSampleRate
-                                                                     channels:1
+                                                                     channels:2
                                                                   interleaved:YES];
     
     for (int i = 0; i < NUMFILES && i < MAXBUFS; i++)  {
@@ -137,7 +148,9 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
         // set up a AudioBufferList to read data into
         AudioBufferList bufList;
         bufList.mNumberBuffers = 1;
-        bufList.mBuffers[0].mNumberChannels = 1;
+        
+        //单声道伴奏1
+        bufList.mBuffers[0].mNumberChannels = 2;
         bufList.mBuffers[0].mData = mSoundBuffer[i].data;
         bufList.mBuffers[0].mDataByteSize = samples * sizeof(Float32);
         
@@ -210,6 +223,7 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
     // multichannel mixer unit
      AudioComponentDescription mixer_desc;
     mixer_desc.componentType = kAudioUnitType_Mixer;
+
     mixer_desc.componentSubType = kAudioUnitSubType_MultiChannelMixer;
     //kAudioUnitSubType_VoiceProcessingIO;
     mixer_desc.componentManufacturer = kAudioUnitManufacturer_Apple;

@@ -15,7 +15,7 @@
 
 typedef struct {
     AudioStreamBasicDescription asbd;
-    Float32 *data;
+    Float32 * _Nonnull data;
     UInt32 numFrames;
     UInt32 sampleNum;
 } SoundBuffer, *SoundBufferPtr;

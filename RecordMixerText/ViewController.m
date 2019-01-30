@@ -46,28 +46,28 @@
     _selectedMusic = [TFMediaDataAnalyzer mediaDataForItemAt:mp3Path];
     
     
-//    aUGraphMixerV2 = [[AUGraphMixerV2 alloc] init];
-//
-//     [aUGraphMixerV2 initializeAUGraph];
+    aUGraphMixerV2 = [[AUGraphMixerV2 alloc] init];
+
+     [aUGraphMixerV2 initializeAUGraph];
 }
 
 - (IBAction)recordAudio:(id)sender {
     
-    if ([self mixRuning]) {
-        [_AUGraphMixer stop];
-//        _AUGraphMixer = nil;
-    }else{
-
-        if (!_AUGraphMixer) {
-            [self setupGraphMixer];
-        }
-        _AUGraphMixer.musicFilePath = _selectedMusic.filePath;
-        [_AUGraphMixer start];
-    }
+//    if ([self mixRuning]) {
+//        [_AUGraphMixer stop];
+////        _AUGraphMixer = nil;
+//    }else{
+//
+//        if (!_AUGraphMixer) {
+//            [self setupGraphMixer];
+//        }
+//        _AUGraphMixer.musicFilePath = _selectedMusic.filePath;
+//        [_AUGraphMixer start];
+//    }
     
     
 
-//    [aUGraphMixerV2 startAUGraph];
+    [aUGraphMixerV2 startAUGraph];
     
 }
 
