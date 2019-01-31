@@ -7,6 +7,9 @@
 //
 
 #import "AUGraphMixerV2.h"
+#import <AVFoundation/AVFoundation.h>
+
+#define CONST_BUFFER_SIZE 2048*2*10
 
 const Float64 kGraphSampleRate = 44100.0;
 
@@ -16,51 +19,83 @@ const Float64 kGraphSampleRate = 44100.0;
 // audio render procedure, don't allocate memory, don't take any locks, don't waste time, printf statements for debugging only may adversly affect render you have been warned
 static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData)
 {
-    SoundBufferPtr sndbuf = (SoundBufferPtr)inRefCon;
     
-    UInt32 sample = sndbuf[inBusNumber].sampleNum;      // frame number to start from
-    UInt32 bufSamples = sndbuf[inBusNumber].numFrames;  // total number of frames in the sound buffer
-    Float32 *in = sndbuf[inBusNumber].data; // audio data buffer
-    
-    Float32 *outA = (Float32 *)ioData->mBuffers[0].mData; // output audio buffer for L channel
-    Float32 *outB = (Float32 *)ioData->mBuffers[1].mData; // output audio buffer for R channel
-    
-    // for demonstration purposes we've configured 2 stereo input busses for the mixer unit
-    // but only provide a single channel of data from each input bus when asked and silence for the other channel
-    // alternating as appropriate when asked to render bus 0 or bus 1's input
-    for (UInt32 i = 0; i < inNumberFrames; ++i) {
+    if(0 == inBusNumber){
         
-        if (1 == inBusNumber) {
+        AUGraphMixerV2* aUGraphMixer = (__bridge AUGraphMixerV2 *)(inRefCon);
+        
+        
+        SoundBufferPtr sndbuf = aUGraphMixer->mSoundBuffer;
+        
+        UInt32 sample = sndbuf[inBusNumber].sampleNum;      // frame number to start from
+        UInt32 bufSamples = sndbuf[inBusNumber].numFrames;  // total number of frames in the sound buffer
+        Float32 *in = sndbuf[inBusNumber].data; // audio data buffer
+        
+        Float32 *outA = (Float32 *)ioData->mBuffers[0].mData; // output audio buffer for L channel
+        Float32 *outB = (Float32 *)ioData->mBuffers[1].mData; // output audio buffer for R channel
+        
+        // for demonstration purposes we've configured 2 stereo input busses for the mixer unit
+        // but only provide a single channel of data from each input bus when asked and silence for the other channel
+        // alternating as appropriate when asked to render bus 0 or bus 1's input
+        for (UInt32 i = 0; i < inNumberFrames; ++i) {
             
-//            outA[i] = 0;
-//            outB[i] = in[sample++];
-            //双声道
-            outA[i] = in[sample++];
-            outB[i] = in[sample++];
-        } else {
+            if (1 == inBusNumber) {
+                
+                //            outA[i] = 0;
+                //            outB[i] = in[sample++];
+                //双声道
+                outA[i] = in[sample++];
+                outB[i] = in[sample++];
+            } else {
+                
+                //            outA[i] = in[sample++];
+                //            outB[i] = 0;
+                
+                //双声道
+                outA[i] = in[sample++];
+                outB[i] = in[sample++];
+            }
             
-//            outA[i] = in[sample++];
-//            outB[i] = 0;
-            
-            //双声道
-            outA[i] = in[sample++];
-            outB[i] = in[sample++];
+            if (sample > bufSamples) {
+                // start over from the beginning of the data, our audio simply loops
+                printf("looping data for bus %d after %ld source frames rendered\n", (unsigned int)inBusNumber, (long)sample-1);
+                sample = 0;
+            }
         }
         
-        if (sample > bufSamples) {
-            // start over from the beginning of the data, our audio simply loops
-            printf("looping data for bus %d after %ld source frames rendered\n", (unsigned int)inBusNumber, (long)sample-1);
-            sample = 0;
-        }
+        sndbuf[inBusNumber].sampleNum = sample; // keep track of where we are in the source data buffer
+        
+        //printf("bus %d sample %d\n", (unsigned int)inBusNumber, (unsigned int)sample);
+    }else{
+        
+      
+        
+        
     }
-    
-    sndbuf[inBusNumber].sampleNum = sample; // keep track of where we are in the source data buffer
-    
-    //printf("bus %d sample %d\n", (unsigned int)inBusNumber, (unsigned int)sample);
+   
     
     return noErr;
 }
 
+
+static OSStatus XTRecordCallback(void *inRefCon,
+                               AudioUnitRenderActionFlags *ioActionFlags,
+                               const AudioTimeStamp *inTimeStamp,
+                               UInt32 inBusNumber,
+                               UInt32 inNumberFrames,
+                               AudioBufferList *ioData)
+{
+    
+     AUGraphMixerV2* aUGraphMixer = (__bridge AUGraphMixerV2 *)(inRefCon);
+    
+    aUGraphMixer->buffList->mNumberBuffers = 1;
+    
+    OSStatus status = AudioUnitRender(aUGraphMixer->mOutput, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, aUGraphMixer->buffList);
+    if (status != noErr) {
+        NSLog(@"AudioUnitRender error:%d", status);
+    }
+    return noErr;
+}
 
 @interface AUGraphMixerV2 ()
 
@@ -173,6 +208,22 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
 - (void)initializeAUGraph
 {
     
+    
+    // buffer
+    uint32_t numberBuffers = 1;
+    buffList = (AudioBufferList *)malloc(sizeof(AudioBufferList));
+    buffList->mNumberBuffers = numberBuffers;
+    buffList->mBuffers[0].mNumberChannels = 1;
+    buffList->mBuffers[0].mDataByteSize = CONST_BUFFER_SIZE;
+    buffList->mBuffers[0].mData = malloc(CONST_BUFFER_SIZE);
+  
+    // audio session
+    AVAudioSession* session = [AVAudioSession sharedInstance];
+    [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionInterruptSpokenAudioAndMixWithOthers error:nil];
+    
+    [session overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil];
+    [session setActive:YES error:nil];
+    
     isPlaying = false;
     
     memset(&mSoundBuffer, 0, sizeof(mSoundBuffer));
@@ -246,6 +297,7 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
     result = AUGraphConnectNodeInput(mGraph, mixerNode, 0, outputNode, 0);
     if (result) { printf("AUGraphConnectNodeInput result %ld %4.4s\n", (long)result, (char*)&result); return; }
     
+    
     // open the graph AudioUnits are open but not initialized (no resource allocation occurs here)
     result = AUGraphOpen(mGraph);
     if (result) { printf("AUGraphOpen result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
@@ -268,7 +320,7 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
         // setup render callback struct
         AURenderCallbackStruct rcbs;
         rcbs.inputProc = &renderInput;
-        rcbs.inputProcRefCon = mSoundBuffer;
+        rcbs.inputProcRefCon = (__bridge void * _Nullable)(self);
         
         printf("set kAudioUnitProperty_SetRenderCallback for mixer input bus %d\n", i);
         
@@ -284,13 +336,52 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
         if (result) { printf("AudioUnitSetProperty result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
     }
     
-    // set output stream format to what we want
-    printf("set output kAudioUnitProperty_StreamFormat\n");
+     result = AudioUnitSetProperty(mOutput, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
+    
+    if(!result){
+        NSLog(@"kAudioUnitProperty_StreamFormat成功");
+    }else{
+        NSLog(@"kAudioUnitProperty_StreamFormat失败");
+    }
+    
+    result = AudioUnitSetProperty(mOutput, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
+    
+    if(!result){
+        NSLog(@"kAudioUnitProperty_StreamFormat成功");
+    }else{
+        NSLog(@"kAudioUnitProperty_StreamFormat失败");
+    }
+    
+    //打开录音端口
+    UInt32 flag = 1;
+    result = AudioUnitSetProperty(mOutput, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &flag, sizeof(flag));
+    if(!result){
+        NSLog(@"录音端口打开成功");
+    }else{
+        NSLog(@"录音端口打开失败");
+    }
+    
+    
+    //录音回调
+    AURenderCallbackStruct recordCallback;
+    recordCallback.inputProc = XTRecordCallback;
+    recordCallback.inputProcRefCon = (__bridge void *)self;
+    
+    result = AudioUnitSetProperty(mOutput,
+                         kAudioOutputUnitProperty_SetInputCallback,
+                         kAudioUnitScope_Output,
+                         1,
+                         &recordCallback,
+                         sizeof(recordCallback));
+    
+    if(!result){
+        NSLog(@"录音回调设置成功");
+    }else{
+        NSLog(@"录音回调设置失败");
+    }
+    
     
     result = AudioUnitSetProperty(mMixer, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
-    if (result) { printf("AudioUnitSetProperty result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
-    
-    result = AudioUnitSetProperty(mOutput, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
     if (result) { printf("AudioUnitSetProperty result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
     
     printf("AUGraphInitialize\n");

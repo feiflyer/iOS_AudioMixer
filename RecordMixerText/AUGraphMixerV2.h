@@ -27,11 +27,17 @@ NS_ASSUME_NONNULL_BEGIN
 {
     CFURLRef sourceURL[2];
     
+     @public
+    
     AVAudioFormat *mAudioFormat;
     
     AUGraph   mGraph;
     AudioUnit mMixer;
     AudioUnit mOutput;
+ 
+   
+    
+    AudioBufferList *buffList;
     
     SoundBuffer mSoundBuffer[MAXBUFS];
     
