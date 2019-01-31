@@ -9,7 +9,7 @@
 #import "AUGraphMixerV2.h"
 #import <AVFoundation/AVFoundation.h>
 
-#define CONST_BUFFER_SIZE 2048*2*10
+#define AVPLAYERITEM_STATUS @"status"
 
 const Float64 kGraphSampleRate = 44100.0;
 
@@ -20,9 +20,11 @@ const Float64 kGraphSampleRate = 44100.0;
 static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData)
 {
     
+      AUGraphMixerV2* aUGraphMixer = (__bridge AUGraphMixerV2 *)(inRefCon);
+    
     if(0 == inBusNumber){
         
-        AUGraphMixerV2* aUGraphMixer = (__bridge AUGraphMixerV2 *)(inRefCon);
+      
         
         
         SoundBufferPtr sndbuf = aUGraphMixer->mSoundBuffer;
@@ -68,8 +70,22 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
         //printf("bus %d sample %d\n", (unsigned int)inBusNumber, (unsigned int)sample);
     }else{
         
-      
+        Float32 *outA = (Float32 *)ioData->mBuffers[0].mData; // output audio buffer for L channel
+        Float32 *outB = (Float32 *)ioData->mBuffers[1].mData;
+
+
+
+        for (UInt32 i = 0; i < inNumberFrames; ++i) {
         
+            
+           // 双声道
+//            outA[i] = in[i];
+//            outB[i] = in[i];
+//
+//            NSLog(@"in[i]:%f",in[i]);
+           
+        }
+    
         
     }
    
@@ -88,18 +104,47 @@ static OSStatus XTRecordCallback(void *inRefCon,
     
      AUGraphMixerV2* aUGraphMixer = (__bridge AUGraphMixerV2 *)(inRefCon);
     
-    aUGraphMixer->buffList->mNumberBuffers = 1;
+
     
-    OSStatus status = AudioUnitRender(aUGraphMixer->mOutput, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, aUGraphMixer->buffList);
+    AudioBufferList bufferList;
+    bufferList.mNumberBuffers = 1;
+    bufferList.mBuffers[0].mData = NULL;
+    bufferList.mBuffers[0].mDataByteSize = 0;
+    
+    OSStatus status = AudioUnitRender(aUGraphMixer->mOutput, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, &bufferList);
+    
     if (status != noErr) {
         NSLog(@"AudioUnitRender error:%d", status);
+    }else{
+        NSLog(@"AudioUnitRender success");
+        
+        [aUGraphMixer writePCMData:bufferList.mBuffers[0].mData size:bufferList.mBuffers[0].mDataByteSize];
     }
+    
+//     UInt32 samples = (UInt32)(aUGraphMixer->mRecordBuffer.numFrames + inNumberFrames) * aUGraphMixer->mRecordBuffer.asbd.mChannelsPerFrame;
+//    if(aUGraphMixer->mRecordBuffer.data){
+//        aUGraphMixer->mRecordBuffer.data = realloc(aUGraphMixer->mRecordBuffer.data, samples * sizeof(Float32));
+//        NSLog(@"动态增加内存");
+//    }else{
+//        aUGraphMixer->mRecordBuffer.data = calloc(samples, sizeof(Float32));
+//        NSLog(@"第一次内存");
+//    }
+    
+    
+    
+    
+   //赋值
+   
     return noErr;
 }
 
 @interface AUGraphMixerV2 ()
 
 - (void)loadFiles;
+
+@property AVPlayerItem* avPlayerItem;
+
+@property AVPlayer* avPlayer;
 
 @end
 
@@ -207,22 +252,9 @@ static OSStatus XTRecordCallback(void *inRefCon,
 
 - (void)initializeAUGraph
 {
-    
-    
-    // buffer
-    uint32_t numberBuffers = 1;
-    buffList = (AudioBufferList *)malloc(sizeof(AudioBufferList));
-    buffList->mNumberBuffers = numberBuffers;
-    buffList->mBuffers[0].mNumberChannels = 1;
-    buffList->mBuffers[0].mDataByteSize = CONST_BUFFER_SIZE;
-    buffList->mBuffers[0].mData = malloc(CONST_BUFFER_SIZE);
   
     // audio session
-    AVAudioSession* session = [AVAudioSession sharedInstance];
-    [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionInterruptSpokenAudioAndMixWithOthers error:nil];
-    
-    [session overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:nil];
-    [session setActive:YES error:nil];
+   
     
     isPlaying = false;
     
@@ -267,6 +299,24 @@ static OSStatus XTRecordCallback(void *inRefCon,
     output_desc.componentManufacturer = kAudioUnitManufacturer_Apple;
     output_desc.componentFlagsMask = 0;
     output_desc.componentFlags = 0;
+    
+    
+    AVAudioSession* session = [AVAudioSession sharedInstance];
+    [session setCategory:AVAudioSessionCategoryPlayAndRecord error:nil];
+    
+//    [session setPreferredIOBufferDuration:0.1 error:nil];
+    
+    NSError* error;
+    
+    [session overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:&error];
+    
+    if(error) {
+        NSLog(@"切换到扬声器失败");
+    }else{
+          NSLog(@"切换到扬声器成功");
+    }
+    
+    [session setActive:YES error:nil];
     
 //    CAComponentDescription (kAudioUnitType_Output, kAudioUnitSubType_RemoteIO, kAudioUnitManufacturer_Apple);
 //    CAShowComponentDescription(&output_desc);
@@ -336,7 +386,24 @@ static OSStatus XTRecordCallback(void *inRefCon,
         if (result) { printf("AudioUnitSetProperty result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
     }
     
-     result = AudioUnitSetProperty(mOutput, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
+    
+    // audio format
+    AudioStreamBasicDescription recordaudioFormat;
+    recordaudioFormat.mSampleRate = 44100;
+    recordaudioFormat.mFormatID = kAudioFormatLinearPCM;
+    recordaudioFormat.mFormatFlags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsNonInterleaved;
+    recordaudioFormat.mFramesPerPacket = 1;
+    recordaudioFormat.mChannelsPerFrame = 1;
+    recordaudioFormat.mBytesPerPacket = 2;
+    recordaudioFormat.mBytesPerFrame = 2;
+    recordaudioFormat.mBitsPerChannel = 16;
+    
+    
+    mRecordBuffer.asbd = recordaudioFormat;
+    mRecordBuffer.numFrames = 0;
+    mRecordBuffer.sampleNum = 0;
+    
+     result = AudioUnitSetProperty(mOutput, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &recordaudioFormat, sizeof(AudioStreamBasicDescription));
     
     if(!result){
         NSLog(@"kAudioUnitProperty_StreamFormat成功");
@@ -344,7 +411,7 @@ static OSStatus XTRecordCallback(void *inRefCon,
         NSLog(@"kAudioUnitProperty_StreamFormat失败");
     }
     
-    result = AudioUnitSetProperty(mOutput, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
+    result = AudioUnitSetProperty(mOutput, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &recordaudioFormat, sizeof(AudioStreamBasicDescription));
     
     if(!result){
         NSLog(@"kAudioUnitProperty_StreamFormat成功");
@@ -434,6 +501,11 @@ static OSStatus XTRecordCallback(void *inRefCon,
     OSStatus result = AUGraphStart(mGraph);
     if (result) { printf("AUGraphStart result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
     isPlaying = true;
+    
+    if(inputSteam){
+         [inputSteam close];
+    }
+   
 }
 
 // stops render
@@ -450,7 +522,130 @@ static OSStatus XTRecordCallback(void *inRefCon,
         result = AUGraphStop(mGraph);
         if (result) { printf("AUGraphStop result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
         isPlaying = false;
+        
+        
+        
+        NSString *path = [NSTemporaryDirectory() stringByAppendingString:@"/record.pcm"];
+        
+        NSURL *url = [NSURL fileURLWithPath:path];
+        
+        inputSteam = [NSInputStream inputStreamWithURL:url];
     }
+    
+    NSLog(@"停止播放");
+    [self createPlayableFileFromPcmData];
+    
+    
+}
+
+- (void)writePCMData:(Byte *)buffer size:(int)size {
+    static FILE *file = NULL;
+    NSString *path = [NSTemporaryDirectory() stringByAppendingString:@"/record.pcm"];
+    if (!file) {
+        file = fopen(path.UTF8String, "w");
+    }
+    fwrite(buffer, size, 1, file);
+}
+
+- (void) createPlayableFileFromPcmData {
+    
+    FILE *fout;
+    
+    short NumChannels = 1;       //录音通道数
+    short BitsPerSample = 16;    //线性采样位数
+    int SamplingRate = 44100;     //录音采样率(Hz)
+    
+    NSString *pcmPath = [NSTemporaryDirectory() stringByAppendingString:@"/record.pcm"];
+    
+    int numOfSamples = (int)[[NSData dataWithContentsOfFile:pcmPath] length];
+    
+    int ByteRate = NumChannels*BitsPerSample*SamplingRate/8;
+    
+    short BlockAlign = NumChannels*BitsPerSample/8;
+    
+    int DataSize = NumChannels*numOfSamples*BitsPerSample/8;
+    
+    int chunkSize = 16;
+    
+    int totalSize = 46 + DataSize;
+    
+    short audioFormat = 1;
+    
+    NSString* wavPath = [NSTemporaryDirectory() stringByAppendingString:@"/recordwav.wav"];;
+    
+    if((fout = fopen([wavPath cStringUsingEncoding:NSUTF8StringEncoding], "w")) == NULL) {
+        NSLog(@"createPlayableFileFromPcmData打开失败:%@",wavPath);
+        return;
+    }
+    
+    fwrite("RIFF", sizeof(char), 4,fout);
+    fwrite(&totalSize, sizeof(int), 1, fout);
+    fwrite("WAVE", sizeof(char), 4, fout);
+    fwrite("fmt ", sizeof(char), 4, fout);
+    fwrite(&chunkSize, sizeof(int),1,fout);
+    fwrite(&audioFormat, sizeof(short), 1, fout);
+    fwrite(&NumChannels, sizeof(short),1,fout);
+    fwrite(&SamplingRate, sizeof(int), 1, fout);
+    fwrite(&ByteRate, sizeof(int), 1, fout);
+    fwrite(&BlockAlign, sizeof(short), 1, fout);
+    fwrite(&BitsPerSample, sizeof(short), 1, fout);
+    fwrite("data", sizeof(char), 4, fout);
+    fwrite(&DataSize, sizeof(int), 1, fout);
+    
+    fclose(fout);
+    
+    NSMutableData *pamdata = [NSMutableData dataWithContentsOfFile:pcmPath];
+    NSFileHandle* handle = [NSFileHandle fileHandleForUpdatingAtPath:wavPath];
+    [handle seekToEndOfFile];
+    [handle writeData:pamdata];
+    [handle closeFile];
+    
+    NSLog(@"createPlayableFileFromPcmData成功:%@",wavPath);
+    
+    [self playWav:wavPath];
+}
+
+- (void) playWav:(NSString*) path {
+    [self playMusic:[NSURL fileURLWithPath:path]];
+}
+
+- (void) playMusic:(NSURL*) url {
+    self.avPlayerItem = [[AVPlayerItem alloc] initWithURL:url];
+    [self.avPlayerItem addObserver:self forKeyPath:AVPLAYERITEM_STATUS options:NSKeyValueObservingOptionNew context:nil];
+    self.avPlayer = [[AVPlayer alloc] init];
+    [self.avPlayer replaceCurrentItemWithPlayerItem:self.avPlayerItem];
+    
+    NSLog(@"playWav");
+}
+
+// kvo
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context{
+    if (object == self.avPlayerItem) {
+        if ([keyPath isEqualToString:AVPLAYERITEM_STATUS]) {
+            switch (self.avPlayerItem.status) {
+                case AVPlayerItemStatusReadyToPlay:
+                    NSLog(@"AVPlayerItemStatusReadyToPlay");
+                    //推荐将视频播放放在这里
+                    [self.avPlayer play];
+                    
+                    break;
+                    
+                case AVPlayerItemStatusUnknown:
+                    NSLog(@"AVPlayerItemStatusUnknown");
+                    
+                    break;
+                    
+                case AVPlayerItemStatusFailed:
+                    NSLog(@"AVPlayerItemStatusFailed");
+                    
+                    break;
+                    
+                default:
+                    break;
+            }
+        }
+    }
+    
 }
 
 @end

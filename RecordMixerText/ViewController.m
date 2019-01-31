@@ -65,19 +65,25 @@
 //        [_AUGraphMixer start];
 //    }
     
-    
+    if([aUGraphMixerV2 isPlaying]){
+         [aUGraphMixerV2 stopAUGraph];
+    }else{
+         [aUGraphMixerV2 startAUGraph];
+    }
 
-    [aUGraphMixerV2 startAUGraph];
+   
     
 }
 
 - (IBAction)playAudio:(id)sender {
-    if (!_audioPlayer) {
-        _audioPlayer = [[TFAudioUnitPlayer alloc] init];
-    }
+//    if (!_audioPlayer) {
+//        _audioPlayer = [[TFAudioUnitPlayer alloc] init];
+//    }
+//
+//    NSLog(@"play mixed");
+//    [_audioPlayer playLocalFile:[_AUGraphMixer.outputPath stringByAppendingString:@".caf"]];
     
-    NSLog(@"play mixed");
-    [_audioPlayer playLocalFile:[_AUGraphMixer.outputPath stringByAppendingString:@".caf"]];
+    [aUGraphMixerV2 playRecord];
 }
 
 -(BOOL)mixRuning{

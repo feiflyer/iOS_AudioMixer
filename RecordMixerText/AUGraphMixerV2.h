@@ -35,13 +35,18 @@ NS_ASSUME_NONNULL_BEGIN
     AudioUnit mMixer;
     AudioUnit mOutput;
  
+    
+    NSInputStream *inputSteam;
    
     
-    AudioBufferList *buffList;
     
     SoundBuffer mSoundBuffer[MAXBUFS];
     
+    SoundBuffer mRecordBuffer;
+    
     Boolean isPlaying;
+    
+    BOOL isPlayRecord;
 }
 
 @property (readonly, nonatomic) Boolean isPlaying;
@@ -54,6 +59,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)startAUGraph;
 - (void)stopAUGraph;
+
+- (void)writePCMData:(Byte *)buffer size:(int)size;
+
+- (void) playRecord;
 
 @end
 
