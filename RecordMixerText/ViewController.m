@@ -42,7 +42,7 @@
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
     
-    NSString *mp3Path = [[NSBundle mainBundle] pathForResource:@"123" ofType:@"mp3"];
+    NSString *mp3Path = [[NSBundle mainBundle] pathForResource:@"1234" ofType:@"mp3"];
     _selectedMusic = [TFMediaDataAnalyzer mediaDataForItemAt:mp3Path];
     
     
@@ -53,37 +53,37 @@
 
 - (IBAction)recordAudio:(id)sender {
     
-//    if ([self mixRuning]) {
-//        [_AUGraphMixer stop];
-////        _AUGraphMixer = nil;
-//    }else{
-//
-//        if (!_AUGraphMixer) {
-//            [self setupGraphMixer];
-//        }
-//        _AUGraphMixer.musicFilePath = _selectedMusic.filePath;
-//        [_AUGraphMixer start];
-//    }
-    
-    if([aUGraphMixerV2 isPlaying]){
-         [aUGraphMixerV2 stopAUGraph];
+    if ([self mixRuning]) {
+        [_AUGraphMixer stop];
+//        _AUGraphMixer = nil;
     }else{
-         [aUGraphMixerV2 startAUGraph];
+
+        if (!_AUGraphMixer) {
+            [self setupGraphMixer];
+        }
+        _AUGraphMixer.musicFilePath = _selectedMusic.filePath;
+        [_AUGraphMixer start];
     }
+    
+//    if([aUGraphMixerV2 isPlaying]){
+//         [aUGraphMixerV2 stopAUGraph];
+//    }else{
+//         [aUGraphMixerV2 startAUGraph];
+//    }
 
    
     
 }
 
 - (IBAction)playAudio:(id)sender {
-//    if (!_audioPlayer) {
-//        _audioPlayer = [[TFAudioUnitPlayer alloc] init];
-//    }
-//
-//    NSLog(@"play mixed");
-//    [_audioPlayer playLocalFile:[_AUGraphMixer.outputPath stringByAppendingString:@".caf"]];
+    if (!_audioPlayer) {
+        _audioPlayer = [[TFAudioUnitPlayer alloc] init];
+    }
+
+    NSLog(@"play mixed");
+    [_audioPlayer playLocalFile:[_AUGraphMixer.outputPath stringByAppendingString:@".caf"]];
     
-    [aUGraphMixerV2 playRecord];
+//    [aUGraphMixerV2 playRecord];
 }
 
 -(BOOL)mixRuning{

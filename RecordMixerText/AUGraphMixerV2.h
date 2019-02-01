@@ -39,10 +39,13 @@ NS_ASSUME_NONNULL_BEGIN
     NSInputStream *inputSteam;
    
     
+    AudioBufferList bufferList;
     
     SoundBuffer mSoundBuffer[MAXBUFS];
     
     SoundBuffer mRecordBuffer;
+    
+    
     
     Boolean isPlaying;
     

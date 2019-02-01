@@ -56,6 +56,9 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
                 //双声道
                 outA[i] = in[sample++];
                 outB[i] = in[sample++];
+                
+                
+//                  NSLog(@"in[sample++]:%f",in[sample++]);
             }
             
             if (sample > bufSamples) {
@@ -70,21 +73,52 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
         //printf("bus %d sample %d\n", (unsigned int)inBusNumber, (unsigned int)sample);
     }else{
         
-        Float32 *outA = (Float32 *)ioData->mBuffers[0].mData; // output audio buffer for L channel
-        Float32 *outB = (Float32 *)ioData->mBuffers[1].mData;
-
-
-
-        for (UInt32 i = 0; i < inNumberFrames; ++i) {
-        
-            
-           // 双声道
-//            outA[i] = in[i];
-//            outB[i] = in[i];
+//        Float32 *outA = (Float32 *)ioData->mBuffers[0].mData; // output audio buffer for L channel
+//        Float32 *outB = (Float32 *)ioData->mBuffers[1].mData;
 //
-//            NSLog(@"in[i]:%f",in[i]);
-           
+//
+//       Float32 *in = aUGraphMixer->bufferList.mBuffers[0].mData; // audio data buffer
+//
+//       for (UInt32 i = 0; i < aUGraphMixer->bufferList.mBuffers[0].mDataByteSize; ++i) {
+//
+//
+//           // 双声道
+////            outA[i] = in[i];
+////            outB[i] = in[i];
+//
+//
+//        }
+        
+//        UInt32 size =
+        
+        aUGraphMixer->bufferList.mNumberBuffers = 1;
+        aUGraphMixer->bufferList.mBuffers[0].mData = NULL;
+        aUGraphMixer->bufferList.mBuffers[0].mDataByteSize = 0;
+        
+        aUGraphMixer->bufferList.mBuffers[1].mData = NULL;
+        aUGraphMixer->bufferList.mBuffers[1].mDataByteSize = 0;
+        
+        OSStatus status = AudioUnitRender(aUGraphMixer->mOutput, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, &aUGraphMixer->bufferList);
+        
+        
+        if (status != noErr) {
+            NSLog(@"AudioUnitRender error:%d", status);
+        }else{
+            NSLog(@"AudioUnitRender success");
+    
+            [aUGraphMixer writePCMData:aUGraphMixer->bufferList.mBuffers[0].mData size:aUGraphMixer->bufferList.mBuffers[0].mDataByteSize];
         }
+        
+        
+         memset(ioData->mBuffers[0].mData, 0, ioData->mBuffers[0].mDataByteSize);
+         memset(ioData->mBuffers[1].mData, 0, ioData->mBuffers[1].mDataByteSize);
+        
+        memcpy(ioData->mBuffers[0].mData, ioData->mBuffers[0].mData, ioData->mBuffers[0].mDataByteSize);
+        
+//        memcpy(ioData->mBuffers[1].mData, aUGraphMixer->bufferList.mBuffers[1].mData, aUGraphMixer->bufferList.mBuffers[1].mDataByteSize);
+
+        ioData->mBuffers[0].mDataByteSize = aUGraphMixer->bufferList.mBuffers[0].mDataByteSize;
+        ioData->mBuffers[1].mDataByteSize = aUGraphMixer->bufferList.mBuffers[1].mDataByteSize;
     
         
     }
@@ -93,6 +127,26 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
     return noErr;
 }
 
+static OSStatus mixerUnitInputCallback(void *inRefCon,
+                                      
+                                      AudioUnitRenderActionFlags *ioActionFlags,
+                                      const AudioTimeStamp *inTimeStamp,
+                                      UInt32 inBusNumber,
+                                      UInt32 inNumberFrames,
+                                      AudioBufferList *ioData) {
+    
+    
+    //使用flag判断数据渲染前后，是渲染后状态则有数据可取
+    if ((*ioActionFlags) & kAudioUnitRenderAction_PostRender){
+        
+        AUGraphMixerV2 *aUGraphMixer = (__bridge AUGraphMixerV2 *)inRefCon;
+        
+        
+//        [aUGraphMixer writePCMData:ioData->mBuffers[0].mData size:ioData->mBuffers[0].mDataByteSize];
+    }
+    
+    return noErr;
+}
 
 static OSStatus XTRecordCallback(void *inRefCon,
                                AudioUnitRenderActionFlags *ioActionFlags,
@@ -102,25 +156,23 @@ static OSStatus XTRecordCallback(void *inRefCon,
                                AudioBufferList *ioData)
 {
     
-     AUGraphMixerV2* aUGraphMixer = (__bridge AUGraphMixerV2 *)(inRefCon);
-    
-
-    
-    AudioBufferList bufferList;
-    bufferList.mNumberBuffers = 1;
-    bufferList.mBuffers[0].mData = NULL;
-    bufferList.mBuffers[0].mDataByteSize = 0;
-    
-    OSStatus status = AudioUnitRender(aUGraphMixer->mOutput, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, &bufferList);
-    
-    if (status != noErr) {
-        NSLog(@"AudioUnitRender error:%d", status);
-    }else{
-        NSLog(@"AudioUnitRender success");
-        
-        [aUGraphMixer writePCMData:bufferList.mBuffers[0].mData size:bufferList.mBuffers[0].mDataByteSize];
-    }
-    
+//     AUGraphMixerV2* aUGraphMixer = (__bridge AUGraphMixerV2 *)(inRefCon);
+//
+//
+//    aUGraphMixer->bufferList.mNumberBuffers = 1;
+//    aUGraphMixer->bufferList.mBuffers[0].mData = NULL;
+//    aUGraphMixer->bufferList.mBuffers[0].mDataByteSize = 0;
+//
+//    OSStatus status = AudioUnitRender(aUGraphMixer->mOutput, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, &aUGraphMixer->bufferList);
+//
+//    if (status != noErr) {
+//        NSLog(@"AudioUnitRender error:%d", status);
+//    }else{
+//        NSLog(@"AudioUnitRender success");
+//
+//        [aUGraphMixer writePCMData:aUGraphMixer->bufferList.mBuffers[0].mData size:aUGraphMixer->bufferList.mBuffers[0].mDataByteSize];
+//    }
+//
 //     UInt32 samples = (UInt32)(aUGraphMixer->mRecordBuffer.numFrames + inNumberFrames) * aUGraphMixer->mRecordBuffer.asbd.mChannelsPerFrame;
 //    if(aUGraphMixer->mRecordBuffer.data){
 //        aUGraphMixer->mRecordBuffer.data = realloc(aUGraphMixer->mRecordBuffer.data, samples * sizeof(Float32));
@@ -452,6 +504,12 @@ static OSStatus XTRecordCallback(void *inRefCon,
     if (result) { printf("AudioUnitSetProperty result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
     
     printf("AUGraphInitialize\n");
+    
+    
+    //play data callback
+     result = AudioUnitAddRenderNotify(mMixer, mixerUnitInputCallback, (__bridge void *)self);
+    
+      if (result) { printf("AudioUnitAddRenderNotify result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
     
     // now that we've set everything up we can initialize the graph, this will also validate the connections
     result = AUGraphInitialize(mGraph);

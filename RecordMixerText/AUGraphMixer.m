@@ -180,6 +180,18 @@
 
 -(OSStatus)setStramFormats{
     
+    
+    // audio format
+    AudioStreamBasicDescription recordaudioFormat;
+    recordaudioFormat.mSampleRate = 44100;
+    recordaudioFormat.mFormatID = kAudioFormatLinearPCM;
+    recordaudioFormat.mFormatFlags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsNonInterleaved;
+    recordaudioFormat.mFramesPerPacket = 1;
+    recordaudioFormat.mChannelsPerFrame = 1;
+    recordaudioFormat.mBytesPerPacket = 2;
+    recordaudioFormat.mBytesPerFrame = 2;
+    recordaudioFormat.mBitsPerChannel = 16;
+    
     for (int i = 0; i<MixerInputSourceCount; i++) {
         if ([[self.audioChannelTypes objectForKey:@(i)] integerValue] == AUGraphMixerChannelTypeStereo) {
             
@@ -205,7 +217,7 @@
     
     //record
     UInt32 size = sizeof(sourceStreamFmts[RecordUnitSourceIndex]);
-    OSStatus status = AudioUnitSetProperty(recordPlayUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, recordBus, &sourceStreamFmts[RecordUnitSourceIndex], size);
+    OSStatus status = AudioUnitSetProperty(recordPlayUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, recordBus, &recordaudioFormat, size);
     TFCheckStatusUnReturn(status, @"set record unit format");
     
     UInt32 flag = 1;
@@ -245,7 +257,7 @@
     
     //play
     size = sizeof(mixStreamFmt);
-    status = AudioUnitSetProperty(recordPlayUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, renderBus, &mixStreamFmt, size);
+    status = AudioUnitSetProperty(recordPlayUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, renderBus, &recordaudioFormat, sizeof(AudioStreamBasicDescription));
     TFCheckStatusUnReturn(status, @"set play unit format");
 
     return status;
@@ -339,6 +351,7 @@ static OSStatus mixerDataInput(void *inRefCon, AudioUnitRenderActionFlags *ioAct
         
     }else if (inBusNumber == RecordUnitSourceIndex){
         [mixer readRecordedAudio:ioActionFlags timeStamp:inTimeStamp numberFrames:inNumberFrames toBuffer:ioData];
+        
     }else if (inBusNumber == SecondAudioFileIndex){
         [mixer readAudioFile:1 numberFrames:inNumberFrames toBuffer:ioData];
     }
@@ -394,7 +407,14 @@ static OSStatus mixerDataInput(void *inRefCon, AudioUnitRenderActionFlags *ioAct
         
         //NonInterleaved时，读取出来是单声道的，ioData->mBuffers[1]的数据是空的，测试为iPhone6.使用电脑模拟器是有数据，只是两声道数据一样。可能是iPhone6硬件支持问题，待研究。
         OSStatus status = AudioUnitRender(recordPlayUnit, ioActionFlags, inTimeStamp, recordBus, inNumberFrames, ioData);
-        memcpy(ioData->mBuffers[1].mData, ioData->mBuffers[0].mData, ioData->mBuffers[1].mDataByteSize);
+        
+        if(status == 0){
+            NSLog(@"录音渲染成功");
+        }else{
+            NSLog(@"录音渲染失败");
+        }
+        
+        memcpy(ioData->mBuffers[1].mData, ioData->mBuffers[0].mData, ioData->mBuffers[0].mDataByteSize);
         
         return status;
         
@@ -428,7 +448,9 @@ static OSStatus playUnitInputCallback(void *inRefCon,
     //使用flag判断数据渲染前后，是渲染后状态则有数据可取
     if ((*ioActionFlags) & kAudioUnitRenderAction_PostRender){
         AUGraphMixer *mixer = (__bridge AUGraphMixer *)inRefCon;
+        
         TFAudioBufferData *tf_audioBuf = TFCreateAudioBufferData(ioData, inNumberFrames);
+        
         [mixer.fileWriter receiveNewAudioBuffers:tf_audioBuf];
     }
 
