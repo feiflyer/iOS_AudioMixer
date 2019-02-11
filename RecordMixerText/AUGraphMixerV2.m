@@ -25,7 +25,7 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
     if(0 == inBusNumber){
         
       
-        
+//         NSLog(@"AudioUnitRender bbbb--inNumberFrames:%u---mBuffers[0]size:%u---mBuffers[1]size:%u",inNumberFrames,ioData->mBuffers[0].mDataByteSize,ioData->mBuffers[1].mDataByteSize);
         
         SoundBufferPtr sndbuf = aUGraphMixer->mSoundBuffer;
         
@@ -95,30 +95,46 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
         aUGraphMixer->bufferList.mBuffers[0].mData = NULL;
         aUGraphMixer->bufferList.mBuffers[0].mDataByteSize = 0;
         
-        aUGraphMixer->bufferList.mBuffers[1].mData = NULL;
-        aUGraphMixer->bufferList.mBuffers[1].mDataByteSize = 0;
-        
         OSStatus status = AudioUnitRender(aUGraphMixer->mOutput, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, &aUGraphMixer->bufferList);
         
         
         if (status != noErr) {
-            NSLog(@"AudioUnitRender error:%d", status);
+//            NSLog(@"AudioUnitRender error:%d", status);
         }else{
-            NSLog(@"AudioUnitRender success");
+            NSLog(@"AudioUnitRender success--inNumberFrames:%u---mBuffers[0]size:%u---mBuffers[1]size:%u",inNumberFrames,aUGraphMixer->bufferList.mBuffers[0].mDataByteSize,aUGraphMixer->bufferList.mBuffers[1].mDataByteSize);
     
-            [aUGraphMixer writePCMData:aUGraphMixer->bufferList.mBuffers[0].mData size:aUGraphMixer->bufferList.mBuffers[0].mDataByteSize];
+//            [aUGraphMixer writePCMData:aUGraphMixer->bufferList.mBuffers[0].mData size:aUGraphMixer->bufferList.mBuffers[0].mDataByteSize];
         }
         
         
-         memset(ioData->mBuffers[0].mData, 0, ioData->mBuffers[0].mDataByteSize);
-         memset(ioData->mBuffers[1].mData, 0, ioData->mBuffers[1].mDataByteSize);
+//         memset(ioData->mBuffers[0].mData, 0, ioData->mBuffers[0].mDataByteSize);
+//         memset(ioData->mBuffers[1].mData, 0, ioData->mBuffers[1].mDataByteSize);
+//
+//         memcpy(ioData->mBuffers[0].mData, ioData->mBuffers[0].mData, ioData->mBuffers[0].mDataByteSize);
+//
+////        memcpy(ioData->mBuffers[1].mData, aUGraphMixer->bufferList.mBuffers[1].mData, aUGraphMixer->bufferList.mBuffers[1].mDataByteSize);
+//
+//        ioData->mBuffers[0].mDataByteSize = aUGraphMixer->bufferList.mBuffers[0].mDataByteSize;
+//        ioData->mBuffers[1].mDataByteSize = aUGraphMixer->bufferList.mBuffers[1].mDataByteSize;
         
-        memcpy(ioData->mBuffers[0].mData, ioData->mBuffers[0].mData, ioData->mBuffers[0].mDataByteSize);
+        Float32 *outA = (Float32 *)ioData->mBuffers[0].mData; // output audio buffer for L channel
+        Float32 *outB = (Float32 *)ioData->mBuffers[1].mData;
         
-//        memcpy(ioData->mBuffers[1].mData, aUGraphMixer->bufferList.mBuffers[1].mData, aUGraphMixer->bufferList.mBuffers[1].mDataByteSize);
-
-        ioData->mBuffers[0].mDataByteSize = aUGraphMixer->bufferList.mBuffers[0].mDataByteSize;
-        ioData->mBuffers[1].mDataByteSize = aUGraphMixer->bufferList.mBuffers[1].mDataByteSize;
+        memset(ioData->mBuffers[0].mData, 0, ioData->mBuffers[0].mDataByteSize);
+        memset(ioData->mBuffers[1].mData, 0, ioData->mBuffers[1].mDataByteSize);
+        
+        UInt32 sample = 0;
+        
+        Float32 *in = aUGraphMixer->bufferList.mBuffers[0].mData;
+        
+         for (UInt32 i = 0; i < inNumberFrames; ++i) {
+//             NSLog(@"sample:%d",sample);
+             Float32 s = in[sample++];
+             NSLog(@"in[sample++]:%f",s);
+             outA[i] = s;
+             outB[i] = in[0];
+             
+         }
     
         
     }
@@ -440,15 +456,22 @@ static OSStatus XTRecordCallback(void *inRefCon,
     
     
     // audio format
-    AudioStreamBasicDescription recordaudioFormat;
+    // audio format
+
     recordaudioFormat.mSampleRate = 44100;
     recordaudioFormat.mFormatID = kAudioFormatLinearPCM;
     recordaudioFormat.mFormatFlags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsNonInterleaved;
+    
     recordaudioFormat.mFramesPerPacket = 1;
+    
     recordaudioFormat.mChannelsPerFrame = 1;
-    recordaudioFormat.mBytesPerPacket = 2;
-    recordaudioFormat.mBytesPerFrame = 2;
+    
     recordaudioFormat.mBitsPerChannel = 16;
+    
+    recordaudioFormat.mBytesPerFrame = recordaudioFormat.mChannelsPerFrame * recordaudioFormat.mBitsPerChannel / 8;
+    
+    recordaudioFormat.mBytesPerPacket = recordaudioFormat.mBytesPerFrame;
+    
     
     
     mRecordBuffer.asbd = recordaudioFormat;

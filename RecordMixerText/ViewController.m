@@ -15,6 +15,7 @@
 
 #import "AUGraphMixerV2.h"
 
+#define AVPLAYERITEM_STATUS @"status"
 
 @interface ViewController () {
    
@@ -27,6 +28,10 @@
     
     
     AUGraphMixerV2* aUGraphMixerV2;
+    
+    AVPlayerItem* avPlayerItem;
+    
+    AVPlayer* avPlayer;
 }
 
 
@@ -81,10 +86,64 @@
     }
 
     NSLog(@"play mixed");
-    [_audioPlayer playLocalFile:[_AUGraphMixer.outputPath stringByAppendingString:@".caf"]];
+    [_audioPlayer playLocalFile:[_AUGraphMixer.outputPath stringByAppendingString:@".m4a"]];
+    
+    
+    NSFileManager* manager = [NSFileManager defaultManager];
+    if ([manager fileExistsAtPath:[_AUGraphMixer.outputPath stringByAppendingString:@".m4a"]]){
+        CGFloat size = [[manager attributesOfItemAtPath:[_AUGraphMixer.outputPath stringByAppendingString:@".m4a"] error:nil] fileSize];
+        
+        NSLog(@"混音文件大小：%f",size);
+    }
+    
+    [self playMusic: [NSURL fileURLWithPath:[_AUGraphMixer.outputPath stringByAppendingString:@".m4a"]]];
     
 //    [aUGraphMixerV2 playRecord];
 }
+
+
+
+- (void) playMusic:(NSURL*) url {
+    avPlayerItem = [[AVPlayerItem alloc] initWithURL:url];
+    [avPlayerItem addObserver:self forKeyPath:AVPLAYERITEM_STATUS options:NSKeyValueObservingOptionNew context:nil];
+    avPlayer = [[AVPlayer alloc] init];
+    [avPlayer replaceCurrentItemWithPlayerItem:avPlayerItem];
+    
+    NSLog(@"playMusic");
+}
+
+// kvo
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context{
+    if (object == avPlayerItem) {
+        if ([keyPath isEqualToString:AVPLAYERITEM_STATUS]) {
+            switch (avPlayerItem.status) {
+                case AVPlayerItemStatusReadyToPlay:
+                    NSLog(@"AVPlayerItemStatusReadyToPlay");
+                    //推荐将视频播放放在这里
+                    [avPlayer play];
+                    
+                    
+                    
+                    break;
+                    
+                case AVPlayerItemStatusUnknown:
+                    NSLog(@"AVPlayerItemStatusUnknown");
+                    
+                    break;
+                    
+                case AVPlayerItemStatusFailed:
+                    NSLog(@"AVPlayerItemStatusFailed");
+                    
+                    break;
+                    
+                default:
+                    break;
+            }
+        }
+    }
+    
+}
+
 
 -(BOOL)mixRuning{
     return _AUGraphMixer.isRuning;

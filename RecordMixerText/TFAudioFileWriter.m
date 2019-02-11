@@ -66,7 +66,7 @@ extern void writeNoiseToAudioFile(const char *fName,int mChannels,bool compress_
         
         if (_fileType == kAudioFileM4AType) {
             
-            AudioStreamBasicDescription outputDesc;
+            AudioStreamBasicDescription outputDesc = {0};
             outputDesc.mFormatID = kAudioFormatMPEG4AAC;
             outputDesc.mFormatFlags = kMPEG4Object_AAC_Main;
             outputDesc.mChannelsPerFrame = _audioDesc.mChannelsPerFrame;
@@ -85,7 +85,7 @@ extern void writeNoiseToAudioFile(const char *fName,int mChannels,bool compress_
             TFCheckStatusReturnStatus(status, @"create ext audio file error")
             
             //输入数据格式使用这个属性设置
-            UInt32 codecManf = kAppleHardwareAudioCodecManufacturer;
+            UInt32 codecManf = kAppleSoftwareAudioCodecManufacturer;
             status = ExtAudioFileSetProperty(mAudioFileRef, kExtAudioFileProperty_CodecManufacturer, sizeof(UInt32), &codecManf);
             status = ExtAudioFileSetProperty(mAudioFileRef, kExtAudioFileProperty_ClientDataFormat, sizeof(_audioDesc), &_audioDesc);
             

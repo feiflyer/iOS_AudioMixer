@@ -31,6 +31,8 @@ NS_ASSUME_NONNULL_BEGIN
     
     AVAudioFormat *mAudioFormat;
     
+    AudioStreamBasicDescription recordaudioFormat;
+    
     AUGraph   mGraph;
     AudioUnit mMixer;
     AudioUnit mOutput;
