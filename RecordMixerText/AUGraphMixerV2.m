@@ -91,50 +91,23 @@ static OSStatus renderInput(void *inRefCon, AudioUnitRenderActionFlags *ioAction
         
 //        UInt32 size =
         
-        aUGraphMixer->bufferList.mNumberBuffers = 1;
-        aUGraphMixer->bufferList.mBuffers[0].mData = NULL;
-        aUGraphMixer->bufferList.mBuffers[0].mDataByteSize = 0;
+//        aUGraphMixer->bufferList.mNumberBuffers = 1;
+//        aUGraphMixer->bufferList.mBuffers[0].mData = NULL;
+//        aUGraphMixer->bufferList.mBuffers[0].mDataByteSize = 0;
+
         
-        OSStatus status = AudioUnitRender(aUGraphMixer->mOutput, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, &aUGraphMixer->bufferList);
-        
-        
-        if (status != noErr) {
-//            NSLog(@"AudioUnitRender error:%d", status);
-        }else{
-            NSLog(@"AudioUnitRender success--inNumberFrames:%u---mBuffers[0]size:%u---mBuffers[1]size:%u",inNumberFrames,aUGraphMixer->bufferList.mBuffers[0].mDataByteSize,aUGraphMixer->bufferList.mBuffers[1].mDataByteSize);
-    
-//            [aUGraphMixer writePCMData:aUGraphMixer->bufferList.mBuffers[0].mData size:aUGraphMixer->bufferList.mBuffers[0].mDataByteSize];
-        }
-        
-        
-//         memset(ioData->mBuffers[0].mData, 0, ioData->mBuffers[0].mDataByteSize);
-//         memset(ioData->mBuffers[1].mData, 0, ioData->mBuffers[1].mDataByteSize);
+
 //
-//         memcpy(ioData->mBuffers[0].mData, ioData->mBuffers[0].mData, ioData->mBuffers[0].mDataByteSize);
-//
-////        memcpy(ioData->mBuffers[1].mData, aUGraphMixer->bufferList.mBuffers[1].mData, aUGraphMixer->bufferList.mBuffers[1].mDataByteSize);
-//
-//        ioData->mBuffers[0].mDataByteSize = aUGraphMixer->bufferList.mBuffers[0].mDataByteSize;
-//        ioData->mBuffers[1].mDataByteSize = aUGraphMixer->bufferList.mBuffers[1].mDataByteSize;
-        
-        Float32 *outA = (Float32 *)ioData->mBuffers[0].mData; // output audio buffer for L channel
-        Float32 *outB = (Float32 *)ioData->mBuffers[1].mData;
-        
         memset(ioData->mBuffers[0].mData, 0, ioData->mBuffers[0].mDataByteSize);
         memset(ioData->mBuffers[1].mData, 0, ioData->mBuffers[1].mDataByteSize);
         
-        UInt32 sample = 0;
+        memcpy(ioData->mBuffers[0].mData, aUGraphMixer->bufferList.mBuffers[0].mData, MIN(aUGraphMixer->bufferList.mBuffers[0].mDataByteSize, ioData->mBuffers[0].mDataByteSize) );
+        memcpy(ioData->mBuffers[1].mData, aUGraphMixer->bufferList.mBuffers[1].mData, MIN(aUGraphMixer->bufferList.mBuffers[1].mDataByteSize, ioData->mBuffers[1].mDataByteSize));
         
-        Float32 *in = aUGraphMixer->bufferList.mBuffers[0].mData;
-        
-         for (UInt32 i = 0; i < inNumberFrames; ++i) {
-//             NSLog(@"sample:%d",sample);
-             Float32 s = in[sample++];
-             NSLog(@"in[sample++]:%f",s);
-             outA[i] = s;
-             outB[i] = in[0];
-             
-         }
+        NSLog(@"ioData->mBuffers[0].mDataByteSize:%d",ioData->mBuffers[0].mDataByteSize);
+        NSLog(@"aUGraphMixer->bufferList.mBuffers[0].mDataByteSize:%d",aUGraphMixer->bufferList.mBuffers[0].mDataByteSize);
+        NSLog(@"ioData->mBuffers[1].mDataByteSize:%d",ioData->mBuffers[1].mDataByteSize);
+
     
         
     }
@@ -158,7 +131,7 @@ static OSStatus mixerUnitInputCallback(void *inRefCon,
         AUGraphMixerV2 *aUGraphMixer = (__bridge AUGraphMixerV2 *)inRefCon;
         
         
-//        [aUGraphMixer writePCMData:ioData->mBuffers[0].mData size:ioData->mBuffers[0].mDataByteSize];
+        [aUGraphMixer writePCMData:ioData->mBuffers[0].mData size:ioData->mBuffers[0].mDataByteSize];
     }
     
     return noErr;
@@ -172,22 +145,26 @@ static OSStatus XTRecordCallback(void *inRefCon,
                                AudioBufferList *ioData)
 {
     
-//     AUGraphMixerV2* aUGraphMixer = (__bridge AUGraphMixerV2 *)(inRefCon);
+     AUGraphMixerV2* aUGraphMixer = (__bridge AUGraphMixerV2 *)(inRefCon);
+
+    aUGraphMixer->bufferList.mNumberBuffers = 1;
+    aUGraphMixer->bufferList.mBuffers[0].mData = NULL;
+    aUGraphMixer->bufferList.mBuffers[0].mDataByteSize = 0;
+    
+    aUGraphMixer->bufferList.mBuffers[1].mData = NULL;
+    aUGraphMixer->bufferList.mBuffers[1].mDataByteSize = 0;
+
+
+////
+    OSStatus status = AudioUnitRender(aUGraphMixer->mOutput, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, &aUGraphMixer->bufferList);
 //
-//
-//    aUGraphMixer->bufferList.mNumberBuffers = 1;
-//    aUGraphMixer->bufferList.mBuffers[0].mData = NULL;
-//    aUGraphMixer->bufferList.mBuffers[0].mDataByteSize = 0;
-//
-//    OSStatus status = AudioUnitRender(aUGraphMixer->mOutput, ioActionFlags, inTimeStamp, inBusNumber, inNumberFrames, &aUGraphMixer->bufferList);
-//
-//    if (status != noErr) {
-//        NSLog(@"AudioUnitRender error:%d", status);
-//    }else{
-//        NSLog(@"AudioUnitRender success");
-//
+    if (status != noErr) {
+        NSLog(@"AudioUnitRender error:%d", status);
+    }else{
+//        NSLog(@"AudioUnitRender success---aUGraphMixer->bufferList.mBuffers[1].mDataByteSize:%d------aUGraphMixer->bufferList.mBuffers[1].mDataByteSize:%d",aUGraphMixer->bufferList.mBuffers[0].mDataByteSize,aUGraphMixer->bufferList.mBuffers[1].mDataByteSize);
+
 //        [aUGraphMixer writePCMData:aUGraphMixer->bufferList.mBuffers[0].mData size:aUGraphMixer->bufferList.mBuffers[0].mDataByteSize];
-//    }
+    }
 //
 //     UInt32 samples = (UInt32)(aUGraphMixer->mRecordBuffer.numFrames + inNumberFrames) * aUGraphMixer->mRecordBuffer.asbd.mChannelsPerFrame;
 //    if(aUGraphMixer->mRecordBuffer.data){
@@ -362,7 +339,7 @@ static OSStatus XTRecordCallback(void *inRefCon,
     
     AudioComponentDescription output_desc;
     output_desc.componentType = kAudioUnitType_Output;
-    output_desc.componentSubType = kAudioUnitSubType_RemoteIO;
+    output_desc.componentSubType = kAudioUnitSubType_VoiceProcessingIO;
     //kAudioUnitSubType_VoiceProcessingIO;
     output_desc.componentManufacturer = kAudioUnitManufacturer_Apple;
     output_desc.componentFlagsMask = 0;
@@ -434,6 +411,32 @@ static OSStatus XTRecordCallback(void *inRefCon,
     result = AudioUnitSetProperty(mMixer, kAudioUnitProperty_ElementCount, kAudioUnitScope_Input, 0, &numbuses, sizeof(numbuses));
     if (result) { printf("AudioUnitSetProperty result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
     
+    // audio format
+    // audio format
+    
+//    kAudioUnitErr_NoConnection
+    
+    recordaudioFormat.mSampleRate = kGraphSampleRate;
+    recordaudioFormat.mFormatID = kAudioFormatLinearPCM;
+    recordaudioFormat.mFormatFlags = kAudioFormatFlagIsSignedInteger;
+    
+    recordaudioFormat.mFramesPerPacket = 1;
+    
+    recordaudioFormat.mChannelsPerFrame = 1;
+    
+    recordaudioFormat.mBitsPerChannel = 16;
+    
+    recordaudioFormat.mBytesPerFrame = recordaudioFormat.mChannelsPerFrame * recordaudioFormat.mBitsPerChannel / 8;
+    
+    recordaudioFormat.mBytesPerPacket = recordaudioFormat.mBytesPerFrame * recordaudioFormat.mFramesPerPacket;
+    
+    
+    
+    mRecordBuffer.asbd = recordaudioFormat;
+    mRecordBuffer.numFrames = 0;
+    mRecordBuffer.sampleNum = 0;
+    
+    
     for (int i = 0; i < numbuses; ++i) {
         // setup render callback struct
         AURenderCallbackStruct rcbs;
@@ -450,33 +453,17 @@ static OSStatus XTRecordCallback(void *inRefCon,
         // set input stream format to what we want
         printf("set mixer input kAudioUnitProperty_StreamFormat for bus %d\n", i);
         
-        result = AudioUnitSetProperty(mMixer, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, i, mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
-        if (result) { printf("AudioUnitSetProperty result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
+        if(i == 1){
+            result = AudioUnitSetProperty(mMixer, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, i, &recordaudioFormat, sizeof(AudioStreamBasicDescription));
+            if (result) { printf("AudioUnitSetProperty result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
+        }else{
+            result = AudioUnitSetProperty(mMixer, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, i, mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
+            if (result) { printf("AudioUnitSetProperty result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
+        }
+        
     }
     
     
-    // audio format
-    // audio format
-
-    recordaudioFormat.mSampleRate = 44100;
-    recordaudioFormat.mFormatID = kAudioFormatLinearPCM;
-    recordaudioFormat.mFormatFlags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsNonInterleaved;
-    
-    recordaudioFormat.mFramesPerPacket = 1;
-    
-    recordaudioFormat.mChannelsPerFrame = 1;
-    
-    recordaudioFormat.mBitsPerChannel = 16;
-    
-    recordaudioFormat.mBytesPerFrame = recordaudioFormat.mChannelsPerFrame * recordaudioFormat.mBitsPerChannel / 8;
-    
-    recordaudioFormat.mBytesPerPacket = recordaudioFormat.mBytesPerFrame;
-    
-    
-    
-    mRecordBuffer.asbd = recordaudioFormat;
-    mRecordBuffer.numFrames = 0;
-    mRecordBuffer.sampleNum = 0;
     
      result = AudioUnitSetProperty(mOutput, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &recordaudioFormat, sizeof(AudioStreamBasicDescription));
     
@@ -523,7 +510,7 @@ static OSStatus XTRecordCallback(void *inRefCon,
     }
     
     
-    result = AudioUnitSetProperty(mMixer, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, mAudioFormat.streamDescription, sizeof(AudioStreamBasicDescription));
+    result = AudioUnitSetProperty(mMixer, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &recordaudioFormat, sizeof(AudioStreamBasicDescription));
     if (result) { printf("AudioUnitSetProperty result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }
     
     printf("AUGraphInitialize\n");
@@ -578,6 +565,11 @@ static OSStatus XTRecordCallback(void *inRefCon,
 - (void)startAUGraph
 {
     printf("PLAY\n");
+    
+    
+    AVAudioSession* session = [AVAudioSession sharedInstance];
+    //    [session setPreferredIOBufferDuration:0.02 error:nil]
+    [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionDuckOthers error:nil];
     
     OSStatus result = AUGraphStart(mGraph);
     if (result) { printf("AUGraphStart result %ld %08lX %4.4s\n", (long)result, (long)result, (char*)&result); return; }

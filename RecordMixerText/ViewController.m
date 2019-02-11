@@ -58,23 +58,23 @@
 
 - (IBAction)recordAudio:(id)sender {
     
-    if ([self mixRuning]) {
-        [_AUGraphMixer stop];
-//        _AUGraphMixer = nil;
-    }else{
-
-        if (!_AUGraphMixer) {
-            [self setupGraphMixer];
-        }
-        _AUGraphMixer.musicFilePath = _selectedMusic.filePath;
-        [_AUGraphMixer start];
-    }
-    
-//    if([aUGraphMixerV2 isPlaying]){
-//         [aUGraphMixerV2 stopAUGraph];
+//    if ([self mixRuning]) {
+//        [_AUGraphMixer stop];
+////        _AUGraphMixer = nil;
 //    }else{
-//         [aUGraphMixerV2 startAUGraph];
+//
+//        if (!_AUGraphMixer) {
+//            [self setupGraphMixer];
+//        }
+//        _AUGraphMixer.musicFilePath = _selectedMusic.filePath;
+//        [_AUGraphMixer start];
 //    }
+    
+    if([aUGraphMixerV2 isPlaying]){
+         [aUGraphMixerV2 stopAUGraph];
+    }else{
+         [aUGraphMixerV2 startAUGraph];
+    }
 
    
     

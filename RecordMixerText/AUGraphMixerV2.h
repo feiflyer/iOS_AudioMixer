@@ -36,6 +36,8 @@ NS_ASSUME_NONNULL_BEGIN
     AUGraph   mGraph;
     AudioUnit mMixer;
     AudioUnit mOutput;
+    
+    AudioTimeStamp* recordTimeStamp;
  
     
     NSInputStream *inputSteam;

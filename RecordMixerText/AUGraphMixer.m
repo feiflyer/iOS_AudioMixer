@@ -67,7 +67,7 @@
 -(void)start{
     
     AVAudioSession* session = [AVAudioSession sharedInstance];
-    
+//    [session setPreferredIOBufferDuration:0.02 error:nil]
     [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionDuckOthers error:nil];
     
     AUGraphStart(processingGraph);
@@ -194,7 +194,8 @@
     
     audioFormat.mSampleRate = 44100;
     audioFormat.mFormatID = kAudioFormatLinearPCM;
-    audioFormat.mFormatFlags = kAudioFormatFlagIsPacked | kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsNonInterleaved;
+    audioFormat.mFormatFlags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
+//    kAudioFormatFlagIsPacked | kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsNonInterleaved;
     audioFormat.mFramesPerPacket = 1;
     audioFormat.mChannelsPerFrame = 1;
     audioFormat.mBitsPerChannel = 16;
@@ -407,18 +408,21 @@ static OSStatus mixerDataInput(void *inRefCon, AudioUnitRenderActionFlags *ioAct
         
     }else{
         
-//        AudioBufferList bufList;
-//        bufList.mNumberBuffers = 1;
-//        
-//        if (channelType == AUGraphMixerChannelTypeLeft) {
-//            bufList.mBuffers[0] = ioData->mBuffers[leftChannelIndex]; //只填充左声道数据
-//            memset(ioData->mBuffers[rightChannelIndex].mData, 0, ioData->mBuffers[rightChannelIndex].mDataByteSize);
-//        }else if (channelType == AUGraphMixerChannelTypeRight){
-//            bufList.mBuffers[0] = ioData->mBuffers[rightChannelIndex];
-//            memset(ioData->mBuffers[leftChannelIndex].mData, 0, ioData->mBuffers[leftChannelIndex].mDataByteSize);
-//        }
+        AudioBufferList bufList;
+        bufList.mNumberBuffers = 1;
         
-        OSStatus status = AudioUnitRender(recordPlayUnit, ioActionFlags, inTimeStamp, recordBus, inNumberFrames, ioData);
+        bufList.mBuffers[0].mData = NULL;
+        bufList.mBuffers[0].mDataByteSize = 0;
+        
+        if (channelType == AUGraphMixerChannelTypeLeft) {
+            bufList.mBuffers[0] = ioData->mBuffers[leftChannelIndex]; //只填充左声道数据
+            memset(ioData->mBuffers[rightChannelIndex].mData, 0, ioData->mBuffers[rightChannelIndex].mDataByteSize);
+        }else if (channelType == AUGraphMixerChannelTypeRight){
+            bufList.mBuffers[0] = ioData->mBuffers[rightChannelIndex];
+            memset(ioData->mBuffers[leftChannelIndex].mData, 0, ioData->mBuffers[leftChannelIndex].mDataByteSize);
+        }
+        
+        OSStatus status = AudioUnitRender(recordPlayUnit, ioActionFlags, inTimeStamp, recordBus, inNumberFrames, &bufList);
         if(status != 0){
             NSLog(@"录音渲染失败:%d",status);
         }else{
