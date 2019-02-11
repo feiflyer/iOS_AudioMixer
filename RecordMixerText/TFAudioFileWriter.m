@@ -68,7 +68,7 @@ extern void writeNoiseToAudioFile(const char *fName,int mChannels,bool compress_
             
             AudioStreamBasicDescription outputDesc = {0};
             outputDesc.mFormatID = kAudioFormatMPEG4AAC;
-            outputDesc.mFormatFlags = kMPEG4Object_AAC_Main;
+            outputDesc.mFormatFlags = kMPEG4Object_AAC_LC;
             outputDesc.mChannelsPerFrame = _audioDesc.mChannelsPerFrame;
             outputDesc.mSampleRate = _audioDesc.mSampleRate;
             outputDesc.mFramesPerPacket = 1024;

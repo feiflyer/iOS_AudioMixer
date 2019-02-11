@@ -47,6 +47,8 @@
     
     AudioBufferList tempRecordBuf;
     
+    AudioStreamBasicDescription audioFormat;
+    
     float volumes[MixerInputSourceCount];
 }
 
@@ -56,6 +58,7 @@
 @property (nonatomic, strong) TFAudioFileWriter *fileWriter;
 
 @property (nonatomic, strong) NSMutableDictionary *audioChannelTypes;
+
 
 @end
 
@@ -119,7 +122,7 @@
     status = AUGraphOpen(processingGraph);
     TFCheckStatusUnReturn(status, @"graph open");
     
-    status = AUGraphNodeInfo(processingGraph, recordPlayNode, &playDesc, &recordPlayUnit);
+    status = AUGraphNodeInfo(processingGraph, recordPlayNode, NULL, &recordPlayUnit);
     TFCheckStatusUnReturn(status, @"get play unit");
     status = AUGraphNodeInfo(processingGraph, mixerNode, NULL, &mixerUnit);
     TFCheckStatusUnReturn(status, @"get record unit");
@@ -188,8 +191,19 @@
     
     
     //record
-    UInt32 size = sizeof(sourceStreamFmts[RecordUnitSourceIndex]);
-    OSStatus status = AudioUnitSetProperty(recordPlayUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, recordBus, &sourceStreamFmts[RecordUnitSourceIndex], size);
+    
+    audioFormat.mSampleRate = 44100;
+    audioFormat.mFormatID = kAudioFormatLinearPCM;
+    audioFormat.mFormatFlags = kAudioFormatFlagIsPacked | kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsNonInterleaved;
+    audioFormat.mFramesPerPacket = 1;
+    audioFormat.mChannelsPerFrame = 1;
+    audioFormat.mBitsPerChannel = 16;
+    audioFormat.mBytesPerFrame = audioFormat.mBitsPerChannel * audioFormat.mChannelsPerFrame / 8;
+    audioFormat.mBytesPerPacket = audioFormat.mBytesPerFrame * audioFormat.mFramesPerPacket;
+    audioFormat.mReserved = 0;
+
+    UInt32 size = sizeof(audioFormat);
+    OSStatus status = AudioUnitSetProperty(recordPlayUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, recordBus, &audioFormat, size);
     TFCheckStatusUnReturn(status, @"set record unit format");
     
     UInt32 flag = 1;
@@ -219,8 +233,15 @@
         status = AUGraphSetNodeInputCallback(processingGraph, mixerNode, i, &mixerInputCallback);
         TFCheckStatusUnReturn(status, @"set mixer node callback");
         
-        status = AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, i, &mixStreamFmt, sizeof(AudioStreamBasicDescription));
-        TFCheckStatusUnReturn(status, @"set mixer input format");
+        if(i == 1){
+            status = AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, i, &audioFormat, sizeof(AudioStreamBasicDescription));
+            TFCheckStatusUnReturn(status, @"set mixer input format");
+        }else{
+            status = AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, i, &mixStreamFmt, sizeof(AudioStreamBasicDescription));
+            TFCheckStatusUnReturn(status, @"set mixer input format");
+        }
+        
+       
     }
     
     status = AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 0, &mixStreamFmt, sizeof(AudioStreamBasicDescription));
@@ -228,9 +249,9 @@
     
     
     //play
-    size = sizeof(mixStreamFmt);
-    status = AudioUnitSetProperty(recordPlayUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, renderBus, &mixStreamFmt, size);
-    TFCheckStatusUnReturn(status, @"set play unit format");
+//    size = sizeof(mixStreamFmt);
+//    status = AudioUnitSetProperty(recordPlayUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, renderBus, &mixStreamFmt, size);
+//    TFCheckStatusUnReturn(status, @"set play unit format");
     
     return status;
 }
@@ -299,8 +320,8 @@
         [_fileReader setDesireOutputFormat:sourceStreamFmts[index]];
         
     }else if (index == RecordUnitSourceIndex){
-        UInt32 size = sizeof(sourceStreamFmts[index]);
-        OSStatus status = AudioUnitSetProperty(recordPlayUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, recordBus, &sourceStreamFmts[index], size);
+        UInt32 size = sizeof(audioFormat);
+        OSStatus status = AudioUnitSetProperty(recordPlayUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, recordBus, &audioFormat, size);
         TFCheckStatusUnReturn(status, @"set record unit format");
     }else if (index == SecondAudioFileIndex){
         [_fileReader2 setDesireOutputFormat:sourceStreamFmts[index]];
@@ -386,20 +407,20 @@ static OSStatus mixerDataInput(void *inRefCon, AudioUnitRenderActionFlags *ioAct
         
     }else{
         
-        AudioBufferList bufList;
-        bufList.mNumberBuffers = 1;
+//        AudioBufferList bufList;
+//        bufList.mNumberBuffers = 1;
+//        
+//        if (channelType == AUGraphMixerChannelTypeLeft) {
+//            bufList.mBuffers[0] = ioData->mBuffers[leftChannelIndex]; //只填充左声道数据
+//            memset(ioData->mBuffers[rightChannelIndex].mData, 0, ioData->mBuffers[rightChannelIndex].mDataByteSize);
+//        }else if (channelType == AUGraphMixerChannelTypeRight){
+//            bufList.mBuffers[0] = ioData->mBuffers[rightChannelIndex];
+//            memset(ioData->mBuffers[leftChannelIndex].mData, 0, ioData->mBuffers[leftChannelIndex].mDataByteSize);
+//        }
         
-        if (channelType == AUGraphMixerChannelTypeLeft) {
-            bufList.mBuffers[0] = ioData->mBuffers[leftChannelIndex]; //只填充左声道数据
-            memset(ioData->mBuffers[rightChannelIndex].mData, 0, ioData->mBuffers[rightChannelIndex].mDataByteSize);
-        }else if (channelType == AUGraphMixerChannelTypeRight){
-            bufList.mBuffers[0] = ioData->mBuffers[rightChannelIndex];
-            memset(ioData->mBuffers[leftChannelIndex].mData, 0, ioData->mBuffers[leftChannelIndex].mDataByteSize);
-        }
-        
-        OSStatus status = AudioUnitRender(recordPlayUnit, ioActionFlags, inTimeStamp, recordBus, inNumberFrames, &bufList);
+        OSStatus status = AudioUnitRender(recordPlayUnit, ioActionFlags, inTimeStamp, recordBus, inNumberFrames, ioData);
         if(status != 0){
-            NSLog(@"录音渲染失败");
+            NSLog(@"录音渲染失败:%d",status);
         }else{
              NSLog(@"录音渲染成功");
         }

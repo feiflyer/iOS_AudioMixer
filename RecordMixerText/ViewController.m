@@ -81,12 +81,12 @@
 }
 
 - (IBAction)playAudio:(id)sender {
-    if (!_audioPlayer) {
-        _audioPlayer = [[TFAudioUnitPlayer alloc] init];
-    }
-
-    NSLog(@"play mixed");
-    [_audioPlayer playLocalFile:[_AUGraphMixer.outputPath stringByAppendingString:@".m4a"]];
+//    if (!_audioPlayer) {
+//        _audioPlayer = [[TFAudioUnitPlayer alloc] init];
+//    }
+//
+//    NSLog(@"play mixed");
+//    [_audioPlayer playLocalFile:[_AUGraphMixer.outputPath stringByAppendingString:@".m4a"]];
     
     
     NSFileManager* manager = [NSFileManager defaultManager];
@@ -104,6 +104,13 @@
 
 
 - (void) playMusic:(NSURL*) url {
+    
+    AVAudioSession* session = [AVAudioSession sharedInstance];
+    
+    [session setCategory:AVAudioSessionCategoryPlayback error:nil];
+    
+    [session setActive:YES error:nil];
+    
     avPlayerItem = [[AVPlayerItem alloc] initWithURL:url];
     [avPlayerItem addObserver:self forKeyPath:AVPLAYERITEM_STATUS options:NSKeyValueObservingOptionNew context:nil];
     avPlayer = [[AVPlayer alloc] init];
