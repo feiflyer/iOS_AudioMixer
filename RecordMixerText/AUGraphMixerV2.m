@@ -530,8 +530,8 @@ static OSStatus XTRecordCallback(void *inRefCon,
     [self enableInput:0 isOn:YES];
     [self enableInput:1 isOn:YES];
     [self setInputVolume:0 value:0.5];
-    [self setInputVolume:1 value:0.5];
-    [self setOutputVolume:0.8];
+    [self setInputVolume:1 value:0.9];
+    [self setOutputVolume:0.6];
 }
 
 
